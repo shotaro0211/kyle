@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Kyle',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -24,7 +29,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Kyle'),
     );
   }
 }
@@ -48,17 +53,52 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  Future<File> downloadFile(String url, String fileName) async {
+    var request = await http.get(Uri.parse(url));
+    var bytes = request.bodyBytes;
+    String dir = (await getApplicationDocumentsDirectory()).path;
+    File file = File('$dir/$fileName');
+    await file.writeAsBytes(bytes);
+    return file;
+  }
+
+  void _incrementCounter() async {
+    final file = await downloadFile(
+        'https://clrd.ninjal.ac.jp/csj/sound-f/aps-smp.mp3', 'aps-smp.mp3');
+
+    print(file);
+    print(await file.exists());
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
+    );
+    request.headers['Authorization'] =
+        'Bearer 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';
+    request.fields['model'] = "whisper-1";
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+      ),
+    );
+
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      final bytes = <int>[];
+
+      await response.stream.listen((List<int> chunk) {
+        bytes.addAll(chunk);
+      }).asFuture();
+
+      final body = utf8.decode(bytes);
+      print(body);
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+    }
   }
 
   @override
