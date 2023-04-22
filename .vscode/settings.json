@@ -1,0 +1,13 @@
+{
+    "dart.flutterSdkPath": ".fvm/flutter_sdk",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+        "source.fixAll": true
+    },
+    "editor.guides.bracketPairs": "active",
+    "dart.previewFlutterUiGuides": true,
+    "files.exclude": {
+        "**/*.freezed.dart": true,
+        "**/*.g.dart": true
+    }
+}
