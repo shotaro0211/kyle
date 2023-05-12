@@ -68,9 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final file = await downloadFile(
         'https://clrd.ninjal.ac.jp/csj/sound-f/aps-smp.mp3', 'aps-smp.mp3');
 
-    print(file);
-    print(await file.exists());
-
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
